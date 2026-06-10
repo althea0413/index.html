@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>給你的理財規劃 ❤️</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --paper: #f5f0e8;
+    --gold: #c9a84c;
+    --gold-light: #e8d5a3;
+    --red: #c0392b;
+    --green: #27ae60;
+    --blue: #2c5f8a;
+    --border: #b8a878;
+    --muted: #6b6055;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Noto Serif TC', serif;
+    min-height: 100vh;
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(184,168,120,0.15) 27px, rgba(184,168,120,0.15) 28px);
+    padding-bottom: 60px;
+  }
+  .header {
+    background: var(--ink);
+    color: var(--gold-light);
+    text-align: center;
+    padding: 40px 20px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(201,168,76,0.05) 3px, rgba(201,168,76,0.05) 6px);
+  }
+  .header-badge {
+    display: inline-block;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+  }
+  .header h1 { font-size: clamp(22px, 5vw, 36px); font-weight: 700; letter-spacing: 4px; line-height: 1.3; margin-bottom: 8px; }
+  .header p { color: rgba(232,213,163,0.6); font-size: 13px; letter-spacing: 2px; }
+  .badge-updated {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--ink);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 3px 10px;
+    margin-top: 10px;
+    font-weight: 700;
+  }
+
+  .love-note {
+    background: linear-gradient(135deg, #fff5f0 0%, #ffe8e0 100%);
+    border: 1px solid #f0c0a0;
+    padding: 16px 20px;
+    margin: 24px 16px 0;
+    max-width: 828px;
+    border-radius: 4px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    font-size: 14px;
+    color: #8b5a3c;
+    line-height: 1.7;
+  }
+  .love-note .heart { font-size: 18px; }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+  .section { margin-top: 36px; animation: fadeUp 0.5s ease both; }
+  .section:nth-child(2) { animation-delay: 0.05s; }
+  .section:nth-child(3) { animation-delay: 0.1s; }
+  .section:nth-child(4) { animation-delay: 0.15s; }
+  .section:nth-child(5) { animation-delay: 0.2s; }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 600px) { .summary-grid { grid-template-columns: 1fr; } }
+  .card { background: white; border: 1px solid var(--border); padding: 20px; position: relative; }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; }
+  .card.income::before { background: var(--green); }
+  .card.expense::before { background: var(--red); }
+  .card.surplus::before { background: var(--gold); }
+  .card-label { font-size: 11px; letter-spacing: 2px; color: var(--muted); margin-bottom: 8px; font-family: 'DM Mono', monospace; }
+  .card-amount { font-size: clamp(22px, 4vw, 30px); font-weight: 700; font-family: 'DM Mono', monospace; }
+  .card.income .card-amount { color: var(--green); }
+  .card.expense .card-amount { color: var(--red); }
+  .card.surplus .card-amount { color: var(--gold); }
+  .card-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .alloc-visual {
+    background: white;
+    border: 1px solid var(--border);
+    padding: 28px 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: center;
+  }
+  @media (max-width: 560px) { .alloc-visual { grid-template-columns: 1fr; } }
+  .pie-wrap { display: flex; justify-content: center; }
+  svg.pie { width: 180px; height: 180px; }
+  .legend { display: flex; flex-direction: column; gap: 14px; }
+  .legend-item { display: flex; align-items: center; gap: 12px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+  .legend-label { font-size: 13px; flex: 1; }
+  .legend-amt { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 700; }
+  .legend-pct { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+
+  .living-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 16px;
+  }
+  @media (max-width: 600px) { .living-grid { grid-template-columns: repeat(2, 1fr); } }
+  .living-card {
+    background: white;
+    border: 1px solid var(--border);
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .living-icon { font-size: 22px; margin-bottom: 4px; }
+  .living-name { font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+  .living-amt { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 700; color: var(--green); margin-top: 4px; }
+
+  .invest-grid { display: grid; gap: 10px; }
+  .invest-row {
+    background: white;
+    border: 1px solid var(--border);
+    padding: 16px 20px;
+    display: grid;
+    grid-template-columns: 32px 1fr auto;
+    gap: 14px;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .invest-row::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 2px;
+    background: var(--blue);
+    transition: width 1.4s cubic-bezier(.22,1,.36,1);
+    width: 0;
+  }
+  .invest-row.loaded::after { width: var(--bar-w); }
+  .invest-num { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 700; color: var(--gold); text-align: center; }
+  .invest-name { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+  .invest-note { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .invest-right { text-align: right; }
+  .invest-amount { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 700; color: var(--blue); }
+  .invest-return { font-size: 11px; color: var(--green); font-family: 'DM Mono', monospace; }
+
+  /* ETF split detail */
+  .etf-split {
+    background: white;
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 16px 20px 16px 66px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: -10px;
+    margin-bottom: 10px;
+  }
+  @media (max-width: 600px) { .etf-split { grid-template-columns: 1fr; padding-left: 20px; } }
+  .etf-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(201,168,76,0.08); border-left: 2px solid var(--gold); }
+  .etf-code { font-family: 'DM Mono', monospace; font-weight: 700; font-size: 13px; color: var(--ink); }
+  .etf-desc { font-size: 11px; color: var(--muted); }
+  .etf-amt { font-family: 'DM Mono', monospace; font-weight: 700; color: var(--blue); font-size: 14px; }
+
+  .proj-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 600px) { .proj-grid { grid-template-columns: 1fr; } }
+  .proj-card { background: white; border: 1px solid var(--border); padding: 20px 16px; text-align: center; }
+  .proj-year { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 2px; margin-bottom: 8px; }
+  .proj-amount { font-family: 'DM Mono', monospace; font-size: clamp(18px, 3vw, 24px); font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .proj-note { font-size: 11px; color: var(--muted); }
+  .proj-card.highlight { background: var(--ink); border-color: var(--gold); }
+  .proj-card.highlight .proj-year { color: var(--gold); }
+  .proj-card.highlight .proj-amount { color: var(--gold-light); }
+  .proj-card.highlight .proj-note { color: rgba(232,213,163,0.6); }
+
+  .tip-box { background: var(--ink); color: var(--gold-light); padding: 24px; border-left: 4px solid var(--gold); margin-top: 36px; }
+  .tip-box h3 { font-size: 13px; letter-spacing: 3px; color: var(--gold); font-family: 'DM Mono', monospace; margin-bottom: 14px; text-transform: uppercase; }
+  .tip-list { list-style: none; }
+  .tip-list li { font-size: 13px; line-height: 1.8; padding: 6px 0 6px 18px; border-bottom: 1px solid rgba(201,168,76,0.15); position: relative; color: rgba(232,213,163,0.85); }
+  .tip-list li::before { content: '▸'; position: absolute; left: 0; color: var(--gold); }
+  .tip-list li:last-child { border-bottom: none; }
+
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 24px;
+    color: var(--muted);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+  .footer .from { color: var(--gold); font-weight: 700; font-size: 13px; margin-top: 6px; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">For My Love</div>
+  <h1>給你的理財規劃書</h1>
+  <p>2026年度・月收入 $100,000</p>
+  <div class="badge-updated">純台股版 · 生活寬裕 · 在地投資</div>
+</div>
+
+<div class="love-note">
+  <span class="heart">💌</span> 寶貝，這是專為你調整的版本，<br>
+  全部投資台灣市場，熟悉好操作～看看順不順手 <span class="heart">❤️</span>
+</div>
+
+<div class="container">
+
+  <!-- 01 -->
+  <div class="section">
+    <div class="section-title">01 &nbsp; 收支總覽</div>
+    <div class="summary-grid">
+      <div class="card income">
+        <div class="card-label">每月總收入</div>
+        <div class="card-amount">$100,000</div>
+        <div class="card-sub">月薪 80,000 ＋ 租金 20,000</div>
+      </div>
+      <div class="card expense">
+        <div class="card-label">固定支出</div>
+        <div class="card-amount">$41,500</div>
+        <div class="card-sub">房租＋房貸＋信用卡</div>
+      </div>
+      <div class="card surplus">
+        <div class="card-label">每月可支配</div>
+        <div class="card-amount">$58,500</div>
+        <div class="card-sub">可支配比率 58.5%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 -->
+  <div class="section">
+    <div class="section-title">02 &nbsp; 資金分配</div>
+    <div class="alloc-visual">
+      <div class="pie-wrap">
+        <svg class="pie" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#eee" stroke-width="3.5"/>
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2c5f8a" stroke-width="3.5"
+            stroke-dasharray="40 60" stroke-dashoffset="25"/>
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#c9a84c" stroke-width="3.5"
+            stroke-dasharray="8.5 91.5" stroke-dashoffset="-15"/>
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#27ae60" stroke-width="3.5"
+            stroke-dasharray="51.5 48.5" stroke-dashoffset="-23.5"/>
+          <text x="18" y="16.5" text-anchor="middle" font-size="4" fill="#1a1a2e" font-family="DM Mono" font-weight="bold">$58,500</text>
+          <text x="18" y="21" text-anchor="middle" font-size="2.8" fill="#6b6055" font-family="DM Mono">每月可支配</text>
+        </svg>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#27ae60;"></div>
+          <div class="legend-label">🎯 生活娛樂</div>
+          <div>
+            <div class="legend-amt" style="color:#27ae60;">$30,000</div>
+            <div class="legend-pct">51.5%</div>
+          </div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#2c5f8a;"></div>
+          <div class="legend-label">📈 長期投資</div>
+          <div>
+            <div class="legend-amt" style="color:#2c5f8a;">$23,500</div>
+            <div class="legend-pct">40%</div>
+          </div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#c9a84c;"></div>
+          <div class="legend-label">💰 儲蓄目標</div>
+          <div>
+            <div class="legend-amt" style="color:#c9a84c;">$5,000</div>
+            <div class="legend-pct">8.5%</div>
+          </div>
+        </div>
+        <div style="border-top:1px solid var(--border); padding-top:12px; font-size:12px; color:var(--muted); font-family:'DM Mono',monospace;">
+          ✅ 緊急預備金 已備妥<br>
+          ✅ 保險 已備妥
+        </div>
+      </div>
+    </div>
+
+    <!-- 生活費細項 -->
+    <div style="margin-top:24px;">
+      <div style="font-size:12px; color:var(--muted); letter-spacing:2px; font-family:'DM Mono',monospace; margin-bottom:8px;">
+        生活費 $30,000 建議分配
+      </div>
+      <div class="living-grid">
+        <div class="living-card">
+          <div class="living-icon">🍱</div>
+          <div class="living-name">飲食</div>
+          <div class="living-amt">$12,000</div>
+        </div>
+        <div class="living-card">
+          <div class="living-icon">🚗</div>
+          <div class="living-name">交通</div>
+          <div class="living-amt">$4,000</div>
+        </div>
+        <div class="living-card">
+          <div class="living-icon">💑</div>
+          <div class="living-name">約會娛樂</div>
+          <div class="living-amt">$8,000</div>
+        </div>
+        <div class="living-card">
+          <div class="living-icon">🛍️</div>
+          <div class="living-name">雜支</div>
+          <div class="living-amt">$6,000</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 -->
+  <div class="section">
+    <div class="section-title">03 &nbsp; 投資組合（每月 $23,500・純台股）</div>
+    <div class="invest-grid">
+
+      <div class="invest-row" style="--bar-w:79%">
+        <div class="invest-num">01</div>
+        <div>
+          <div class="invest-name">台股 ETF 組合（主力部位）</div>
+          <div class="invest-note">追蹤台灣大型股＋高股息＋市值型，分散個股風險<br>定期定額不擇時，跌更要買，每季配息再投入</div>
+        </div>
+        <div class="invest-right">
+          <div class="invest-amount">$18,500</div>
+          <div class="invest-return">年化 ≈ 6–9%</div>
+        </div>
+      </div>
+
+      <!-- 台股 ETF 細項拆分 -->
+      <div class="etf-split">
+        <div class="etf-item">
+          <div>
+            <div class="etf-code">0050</div>
+            <div class="etf-desc">元大台灣50・市值型</div>
+          </div>
+          <div class="etf-amt">$7,000</div>
+        </div>
+        <div class="etf-item">
+          <div>
+            <div class="etf-code">00878</div>
+            <div class="etf-desc">國泰永續高股息</div>
+          </div>
+          <div class="etf-amt">$6,000</div>
+        </div>
+        <div class="etf-item">
+          <div>
+            <div class="etf-code">00919</div>
+            <div class="etf-desc">群益台灣精選高息</div>
+          </div>
+          <div class="etf-amt">$3,000</div>
+        </div>
+        <div class="etf-item">
+          <div>
+            <div class="etf-code">00713</div>
+            <div class="etf-desc">元大台灣高息低波</div>
+          </div>
+          <div class="etf-amt">$2,500</div>
+        </div>
+      </div>
+
+      <div class="invest-row" style="--bar-w:21%">
+        <div class="invest-num">02</div>
+        <div>
+          <div class="invest-name">債券 ETF ／ 高利活儲</div>
+          <div class="invest-note">如 00679B（美債20年）或銀行高利活儲<br>降低整體波動，跌深時當子彈轉進股票</div>
+        </div>
+        <div class="invest-right">
+          <div class="invest-amount">$5,000</div>
+          <div class="invest-return">年化 ≈ 3–5%</div>
+        </div>
+      </div>
+
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-top:10px;font-family:'DM Mono',monospace;">
+      💡 全台股配置：市值型（0050）穩健成長 + 高股息（00878/00919/00713）創造現金流
+    </p>
+  </div>
+
+  <!-- 04 -->
+  <div class="section">
+    <div class="section-title">04 &nbsp; 財富累積預估（假設年化 7%）</div>
+    <div class="proj-grid">
+      <div class="proj-card">
+        <div class="proj-year">1 YEAR</div>
+        <div class="proj-amount">$294,000</div>
+        <div class="proj-note">投資帳戶本利合</div>
+      </div>
+      <div class="proj-card">
+        <div class="proj-year">3 YEARS</div>
+        <div class="proj-amount">$910,000</div>
+        <div class="proj-note">含複利滾入</div>
+      </div>
+      <div class="proj-card highlight">
+        <div class="proj-year">5 YEARS</div>
+        <div class="proj-amount">$1,640,000</div>
+        <div class="proj-note">穩健累積中</div>
+      </div>
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin-top:10px;font-family:'DM Mono',monospace;">
+      ＊預估值僅供參考，實際報酬依市場狀況而異，不含儲蓄部分
+    </p>
+  </div>
+
+  <!-- 建議 -->
+  <div class="tip-box">
+    <h3>★ &nbsp; 執行要點</h3>
+    <ul class="tip-list">
+      <li>薪水入帳當天：自動轉帳 $23,500 至證券戶，$5,000 至儲蓄，剩餘為生活費</li>
+      <li>生活費 $30,000：飲食 12,000 / 交通 4,000 / 約會 8,000 / 雜支 6,000</li>
+      <li>台股 ETF 分四檔：市值型 0050 打底，三檔高股息創造現金流</li>
+      <li>用券商定期定額功能（如富邦、永豐、玉山）自動扣款，不用手動</li>
+      <li>債券 ETF $5,000 作為「股市大跌時的子彈」，跌深時轉進股票</li>
+      <li>$5,000 儲蓄每年累積 $60,000，3年後可作旅遊或大筆消費用</li>
+      <li>配息季（3/6/9/12月）配息直接再投入，加速複利</li>
+      <li>信用卡善用點數回饋，但每月全額繳清，絕不動用循環利率</li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    一起努力，財富自由！<br>
+    <div class="from">— 你的女朋友 💕</div>
+  </div>
+
+</div>
+
+<script>
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.querySelectorAll('.invest-row').forEach(el => el.classList.add('loaded'));
+    }, 400);
+  });
+</script>
+
+</body>
+</html>
