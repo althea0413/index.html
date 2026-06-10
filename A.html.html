@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>每日交易回報表</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a2b3d;
+    --paper: #eef5fb;
+    --paper-2: #e0eef9;
+    --blue-deep: #2c5f8a;
+    --blue: #4a8bc2;
+    --blue-light: #7fb3d9;
+    --blue-soft: #c8e0f0;
+    --blue-bg: #f4faff;
+    --silver: #8ba5bd;
+    --green: #5ba373;
+    --red: #c47878;
+    --gold: #c9a84c;
+    --border: #b8d4e8;
+    --muted: #6b8299;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Noto Serif TC', serif;
+    min-height: 100vh;
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(127,179,217,0.1) 27px, rgba(127,179,217,0.1) 28px);
+    padding-bottom: 60px;
+  }
+  .header {
+    background: linear-gradient(135deg, var(--ink) 0%, var(--blue-deep) 100%);
+    color: white;
+    text-align: center;
+    padding: 36px 20px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,0.03) 3px, rgba(255,255,255,0.03) 6px);
+  }
+  .header-badge {
+    display: inline-block;
+    border: 1px solid var(--blue-light);
+    color: var(--blue-light);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    padding: 4px 14px;
+    margin-bottom: 14px;
+  }
+  .header h1 { font-size: clamp(22px, 5vw, 32px); font-weight: 700; letter-spacing: 4px; line-height: 1.3; margin-bottom: 8px; }
+  .header p { color: rgba(255,255,255,0.6); font-size: 12px; letter-spacing: 2px; font-family: 'DM Mono', monospace; }
+
+  /* Date selector */
+  .date-strip {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .date-strip input[type="date"], .date-strip input[type="text"] {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--ink);
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--blue-bg);
+  }
+  .date-strip label {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 2px;
+  }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+  .section { margin-top: 28px; animation: fadeUp 0.5s ease both; }
+  .section:nth-child(2) { animation-delay: 0.05s; }
+  .section:nth-child(3) { animation-delay: 0.1s; }
+  .section:nth-child(4) { animation-delay: 0.15s; }
+  .section:nth-child(5) { animation-delay: 0.2s; }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .section-title .badge {
+    display: inline-block;
+    background: var(--blue-deep);
+    color: white;
+    font-size: 10px;
+    padding: 2px 8px;
+    margin-right: 6px;
+    border-radius: 2px;
+  }
+
+  /* Card panels */
+  .panel {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px 22px;
+    box-shadow: 0 1px 3px rgba(44,95,138,0.06);
+  }
+  .panel + .panel { margin-top: 12px; }
+
+  .panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--blue-soft);
+  }
+  .panel-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-name::before {
+    content: '';
+    width: 4px;
+    height: 16px;
+    background: var(--blue-deep);
+  }
+  .panel-icon {
+    font-size: 18px;
+    margin-right: 2px;
+  }
+
+  /* Field rows */
+  .field-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--blue-soft);
+  }
+  .field-row:last-child { border-bottom: none; }
+  .field-label {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .field-value {
+    font-family: 'DM Mono', monospace;
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 14px;
+    min-width: 120px;
+    text-align: right;
+    padding: 4px 10px;
+    background: var(--blue-bg);
+    border-radius: 3px;
+    border: 1px solid var(--blue-soft);
+  }
+  .field-value[contenteditable="true"]:focus {
+    outline: none;
+    border-color: var(--blue);
+    background: white;
+  }
+  .field-value[contenteditable="true"]:empty::before {
+    content: attr(data-placeholder);
+    color: var(--silver);
+    font-weight: 400;
+  }
+
+  /* Futures sub-cards */
+  .futures-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  @media (max-width: 600px) { .futures-grid { grid-template-columns: 1fr; } }
+
+  .futures-card {
+    background: var(--blue-bg);
+    border: 1px solid var(--blue-soft);
+    border-radius: 4px;
+    padding: 14px 12px;
+  }
+  .futures-card h4 {
+    font-size: 12px;
+    color: var(--blue-deep);
+    font-weight: 700;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--blue-soft);
+    text-align: center;
+    letter-spacing: 1px;
+  }
+  .futures-card .mini-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    font-size: 12px;
+  }
+  .futures-card .mini-label { color: var(--muted); }
+  .futures-card .mini-value {
+    font-family: 'DM Mono', monospace;
+    font-weight: 700;
+    color: var(--ink);
+    background: white;
+    padding: 2px 8px;
+    border-radius: 3px;
+    min-width: 80px;
+    text-align: right;
+    border: 1px solid var(--blue-soft);
+  }
+  .futures-card .mini-value[contenteditable="true"]:empty::before {
+    content: attr(data-placeholder);
+    color: var(--silver);
+    font-weight: 400;
+  }
+  .futures-card .mini-value[contenteditable="true"]:focus {
+    outline: none;
+    border-color: var(--blue);
+  }
+
+  /* Total summary highlight */
+  .total-panel {
+    background: linear-gradient(135deg, var(--ink) 0%, var(--blue-deep) 100%);
+    color: white;
+    border: 1px solid var(--blue-deep);
+    border-radius: 4px;
+    padding: 24px;
+  }
+  .total-panel .panel-head { border-bottom-color: rgba(255,255,255,0.2); }
+  .total-panel .panel-name { color: white; }
+  .total-panel .panel-name::before { background: var(--gold); }
+  .total-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 8px;
+  }
+  @media (max-width: 600px) { .total-grid { grid-template-columns: 1fr; } }
+  .total-item {
+    text-align: center;
+    padding: 14px 8px;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 3px;
+    background: rgba(255,255,255,0.04);
+  }
+  .total-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 2px;
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 6px;
+  }
+  .total-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gold);
+    padding: 4px 10px;
+    border-radius: 3px;
+    display: inline-block;
+    min-width: 100px;
+  }
+  .total-value[contenteditable="true"]:empty::before {
+    content: attr(data-placeholder);
+    color: rgba(201,168,76,0.4);
+    font-weight: 400;
+  }
+  .total-value[contenteditable="true"]:focus {
+    outline: none;
+    background: rgba(255,255,255,0.1);
+  }
+
+  /* Mindset notes */
+  .notes-grid {
+    display: grid;
+    gap: 10px;
+  }
+  .note-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--blue);
+    border-radius: 3px;
+    padding: 14px 16px;
+  }
+
+  /* Mood selector */
+  .mood-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 4px;
+  }
+  @media (max-width: 600px) {
+    .mood-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 400px) {
+    .mood-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  .mood-btn {
+    background: var(--blue-bg);
+    border: 1px solid var(--blue-soft);
+    border-radius: 4px;
+    padding: 10px 6px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .mood-btn:hover {
+    border-color: var(--blue);
+    background: white;
+    transform: translateY(-1px);
+  }
+  .mood-btn.active {
+    background: var(--blue-deep);
+    border-color: var(--blue-deep);
+    color: white;
+    box-shadow: 0 2px 6px rgba(44,95,138,0.25);
+  }
+  .mood-btn .mood-emoji {
+    font-size: 22px;
+    display: block;
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+  .mood-btn .mood-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  .mood-btn.active .mood-label {
+    color: rgba(255,255,255,0.9);
+  }
+  .note-q {
+    font-size: 12px;
+    color: var(--blue-deep);
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .note-q .num {
+    background: var(--blue-deep);
+    color: white;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .note-a {
+    min-height: 50px;
+    padding: 8px 10px;
+    background: var(--blue-bg);
+    border: 1px dashed var(--blue-soft);
+    border-radius: 3px;
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.7;
+    outline: none;
+  }
+  .note-a:focus { border-color: var(--blue); background: white; border-style: solid; }
+  .note-a:empty::before {
+    content: attr(data-placeholder);
+    color: var(--silver);
+  }
+
+  /* Action bar */
+  .actions {
+    margin-top: 24px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .btn {
+    background: var(--blue-deep);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(44,95,138,0.25);
+  }
+  .btn:hover { background: var(--ink); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(44,95,138,0.35); }
+  .btn-outline {
+    background: white;
+    color: var(--blue-deep);
+    border: 1px solid var(--blue-deep);
+    box-shadow: none;
+  }
+  .btn-outline:hover { background: var(--blue-bg); }
+
+  .copy-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--ink);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 4px;
+    font-size: 13px;
+    letter-spacing: 2px;
+    box-shadow: 0 4px 16px rgba(44,95,138,0.3);
+    transition: transform 0.3s;
+    z-index: 100;
+  }
+  .copy-toast.show { transform: translateX(-50%) translateY(0); }
+
+  .footer {
+    text-align: center;
+    margin-top: 36px;
+    padding: 20px;
+    color: var(--muted);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+  .footer .em {
+    color: var(--blue-deep);
+    font-weight: 700;
+    font-size: 13px;
+    margin-top: 6px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 2px;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Make positive/negative numbers colored */
+  .pos { color: var(--green) !important; }
+  .neg { color: var(--red) !important; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">DAILY TRADING JOURNAL</div>
+  <h1>每日交易回報表</h1>
+  <p>SPOT  ·  FUTURES  ·  MINDSET</p>
+</div>
+
+<div class="date-strip">
+  <label>DATE</label>
+  <input type="date" id="trade-date">
+  <label>·  星期</label>
+  <input type="text" id="weekday" style="width:80px;text-align:center;" placeholder="—">
+</div>
+
+<div class="container">
+
+  <!-- 01 現貨 -->
+  <div class="section">
+    <div class="section-title"><span class="badge">01</span> 台股現貨</div>
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-name"><span class="panel-icon">📈</span>現貨交易紀錄</div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">總損益</div>
+        <div class="field-value" contenteditable="true" data-placeholder="$0" data-type="pnl"></div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">交易筆數</div>
+        <div class="field-value" contenteditable="true" data-placeholder="0"></div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">獲利 / 虧損筆數</div>
+        <div class="field-value" contenteditable="true" data-placeholder="0 / 0"></div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">勝率</div>
+        <div class="field-value" contenteditable="true" data-placeholder="0%"></div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">最大單筆獲利</div>
+        <div class="field-value" contenteditable="true" data-placeholder="$0"></div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">最大單筆虧損</div>
+        <div class="field-value" contenteditable="true" data-placeholder="$0"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 期貨 -->
+  <div class="section">
+    <div class="section-title"><span class="badge">02</span> 台指期貨</div>
+
+    <div class="futures-grid">
+      <div class="futures-card">
+        <h4>大台指 TX</h4>
+        <div class="mini-row">
+          <span class="mini-label">口數</span>
+          <span class="mini-value" contenteditable="true" data-placeholder="0"></span>
+        </div>
+        <div class="mini-row">
+          <span class="mini-label">損益</span>
+          <span class="mini-value" contenteditable="true" data-placeholder="$0" data-type="pnl"></span>
+        </div>
+        <div class="mini-row">
+          <span class="mini-label">勝率</span>
+          <span class="mini-value" contenteditable="true" data-placeholder="0%"></span>
+        </div>
+      </div>
+
+      <div class="futures-card">
+        <h4>小台指 MTX</h4>
+        <div class="mini-row">
+          <span class="mini-label">口數</span>
+          <span class="mini-value" contenteditable="true" data-placeholder="0"></span>
+        </div>
+        <div class="mini-row">
+          <span class="mini-label">損益</span>
+          <span class="mini-value" contenteditable="true" data-placeholder="$0" data-type="pnl"></span>
+        </div>
+        <div class="mini-row">
+          <span class="mini-label">勝率</span>
+          <span class="mini-value" contenteditable="true" data-placeholder="0%"></span>
+        </div>
+      </div>
+
+      <div class="futures-card">
+        <h4>微台指 TMF</h4>
+        <div class="mini-row">
+          <span class="mini-label">口數</span>
+          <span class="mini-value" contenteditable="true" data-placeholder="0"></span>
+        </div>
+        <div class="mini-row">
+          <span class="mini-label">損益</span>
+          <span class="mini-value" contenteditable="true" data-placeholder="$0" data-type="pnl"></span>
+        </div>
+        <div class="mini-row">
+          <span class="mini-label">勝率</span>
+          <span class="mini-value" contenteditable="true" data-placeholder="0%"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="field-row">
+        <div class="field-label">期貨小計損益</div>
+        <div class="field-value" contenteditable="true" data-placeholder="$0" data-type="pnl"></div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">期貨整體勝率</div>
+        <div class="field-value" contenteditable="true" data-placeholder="0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 今日總結 -->
+  <div class="section">
+    <div class="section-title"><span class="badge">03</span> 今日總結</div>
+    <div class="total-panel">
+      <div class="panel-head">
+        <div class="panel-name">✦ Daily Summary</div>
+      </div>
+      <div class="total-grid">
+        <div class="total-item">
+          <div class="total-label">TODAY P&L</div>
+          <div class="total-value" contenteditable="true" data-placeholder="$0" data-type="pnl">—</div>
+        </div>
+        <div class="total-item">
+          <div class="total-label">WIN RATE</div>
+          <div class="total-value" contenteditable="true" data-placeholder="0%">—</div>
+        </div>
+        <div class="total-item">
+          <div class="total-label">MTD P&L</div>
+          <div class="total-value" contenteditable="true" data-placeholder="$0" data-type="pnl">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 心態回顧 -->
+  <div class="section">
+    <div class="section-title"><span class="badge">04</span> 心態回顧</div>
+    <div class="notes-grid">
+      <div class="note-card">
+        <div class="note-q"><span class="num">1</span>今天的心情狀態？</div>
+        <div class="mood-grid" id="mood-grid">
+          <div class="mood-btn" data-mood="平穩"><span class="mood-emoji">😌</span><span class="mood-label">平穩</span></div>
+          <div class="mood-btn" data-mood="興奮"><span class="mood-emoji">🤩</span><span class="mood-label">興奮</span></div>
+          <div class="mood-btn" data-mood="緊張"><span class="mood-emoji">😰</span><span class="mood-label">緊張</span></div>
+          <div class="mood-btn" data-mood="焦慮"><span class="mood-emoji">😟</span><span class="mood-label">焦慮</span></div>
+          <div class="mood-btn" data-mood="自信"><span class="mood-emoji">😎</span><span class="mood-label">自信</span></div>
+          <div class="mood-btn" data-mood="挫折"><span class="mood-emoji">😩</span><span class="mood-label">挫折</span></div>
+          <div class="mood-btn" data-mood="貪婪"><span class="mood-emoji">🤑</span><span class="mood-label">貪婪</span></div>
+          <div class="mood-btn" data-mood="恐懼"><span class="mood-emoji">😨</span><span class="mood-label">恐懼</span></div>
+          <div class="mood-btn" data-mood="疲憊"><span class="mood-emoji">😴</span><span class="mood-label">疲憊</span></div>
+          <div class="mood-btn" data-mood="專注"><span class="mood-emoji">🧘</span><span class="mood-label">專注</span></div>
+          <div class="mood-btn" data-mood="後悔"><span class="mood-emoji">😣</span><span class="mood-label">後悔</span></div>
+          <div class="mood-btn" data-mood="滿足"><span class="mood-emoji">🥰</span><span class="mood-label">滿足</span></div>
+        </div>
+      </div>
+      <div class="note-card">
+        <div class="note-q"><span class="num">2</span>有沒有違反紀律的地方？</div>
+        <div class="note-a" contenteditable="true" data-placeholder="例：今天有凹單一次，停損設定沒守住⋯"></div>
+      </div>
+      <div class="note-card">
+        <div class="note-q"><span class="num">3</span>今天學到什麼？</div>
+        <div class="note-a" contenteditable="true" data-placeholder="例：發現開盤前 15 分鐘的方向常常是假突破⋯"></div>
+      </div>
+      <div class="note-card">
+        <div class="note-q"><span class="num">4</span>明天要注意什麼？</div>
+        <div class="note-a" contenteditable="true" data-placeholder="例：避開美股 CPI 公布前後不交易⋯"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button class="btn" onclick="copyReport()">📋 複製整份回報</button>
+    <button class="btn btn-outline" onclick="clearAll()">🔄 清空重填</button>
+  </div>
+
+  <div class="footer">
+    <div>專注紀律 · 累積勝率 · 心態為王</div>
+    <div class="em">— STAY  DISCIPLINED —</div>
+  </div>
+
+</div>
+
+<div class="copy-toast" id="toast">✓ 已複製，可直接貼給 Claude 分析</div>
+
+<script>
+  // Auto-fill date and weekday
+  const dateInput = document.getElementById('trade-date');
+  const weekdayInput = document.getElementById('weekday');
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth()+1).padStart(2,'0');
+  const dd = String(today.getDate()).padStart(2,'0');
+  dateInput.value = `${yyyy}-${mm}-${dd}`;
+  const days = ['日','一','二','三','四','五','六'];
+  weekdayInput.value = days[today.getDay()];
+  dateInput.addEventListener('change', () => {
+    const d = new Date(dateInput.value);
+    weekdayInput.value = days[d.getDay()];
+  });
+
+  // Color positive/negative
+  function applyColors() {
+    document.querySelectorAll('[data-type="pnl"]').forEach(el => {
+      const txt = el.textContent.trim();
+      el.classList.remove('pos', 'neg');
+      if (txt.includes('-') || txt.includes('−')) {
+        el.classList.add('neg');
+      } else if (/[1-9]/.test(txt) && !txt.startsWith('$0') && txt !== '—' && txt !== '$0') {
+        el.classList.add('pos');
+      }
+    });
+  }
+  document.addEventListener('input', applyColors);
+
+  // Mood selector (multi-select)
+  document.querySelectorAll('.mood-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('active');
+    });
+  });
+
+  function getSelectedMoods() {
+    const moods = Array.from(document.querySelectorAll('.mood-btn.active'))
+      .map(b => b.dataset.mood);
+    return moods.length ? moods.join('、') : '—';
+  }
+
+  // Copy report as plain text
+  function copyReport() {
+    const date = dateInput.value || '____-__-__';
+    const weekday = weekdayInput.value || '_';
+
+    const spotFields = document.querySelectorAll('.section:nth-of-type(1) .field-value');
+    const fc = document.querySelectorAll('.futures-card');
+    const futTotalFields = document.querySelectorAll('.section:nth-of-type(2) .panel .field-value');
+    const totals = document.querySelectorAll('.total-value');
+    const notes = document.querySelectorAll('.note-a');
+
+    const futData = (i) => {
+      const card = fc[i].querySelectorAll('.mini-value');
+      return {
+        kou: card[0].textContent.trim() || '—',
+        pnl: card[1].textContent.trim() || '—',
+        win: card[2].textContent.trim() || '—'
+      };
+    };
+
+    const txt =
+`━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 每日交易回報表
+日期：${date}（星期${weekday}）
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【一、台股現貨】
+────────────────────
+總損益：${spotFields[0]?.textContent.trim() || '—'}
+交易筆數：${spotFields[1]?.textContent.trim() || '—'} 筆
+獲利 / 虧損：${spotFields[2]?.textContent.trim() || '—'}
+勝率：${spotFields[3]?.textContent.trim() || '—'}
+最大單筆獲利：${spotFields[4]?.textContent.trim() || '—'}
+最大單筆虧損：${spotFields[5]?.textContent.trim() || '—'}
+
+
+【二、台指期貨】
+────────────────────
+▸ 大台指 TX
+  口數：${futData(0).kou} 口
+  損益：${futData(0).pnl}
+  勝率：${futData(0).win}
+
+▸ 小台指 MTX
+  口數：${futData(1).kou} 口
+  損益：${futData(1).pnl}
+  勝率：${futData(1).win}
+
+▸ 微台指 TMF
+  口數：${futData(2).kou} 口
+  損益：${futData(2).pnl}
+  勝率：${futData(2).win}
+
+期貨小計損益：${futTotalFields[0]?.textContent.trim() || '—'}
+期貨整體勝率：${futTotalFields[1]?.textContent.trim() || '—'}
+
+
+【三、今日總結】
+────────────────────
+✦ 現貨 + 期貨 總損益：${totals[0]?.textContent.trim() || '—'}
+✦ 整體勝率：${totals[1]?.textContent.trim() || '—'}
+✦ 累計本月損益：${totals[2]?.textContent.trim() || '—'}
+
+
+【四、心態回顧】
+────────────────────
+▸ 今天的心情狀態：${getSelectedMoods()}
+
+▸ 有沒有違反紀律的地方？
+  ${notes[0]?.textContent.trim() || '—'}
+
+▸ 今天學到什麼？
+  ${notes[1]?.textContent.trim() || '—'}
+
+▸ 明天要注意什麼？
+  ${notes[2]?.textContent.trim() || '—'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
+    navigator.clipboard.writeText(txt).then(() => {
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2400);
+    }).catch(() => {
+      // Fallback
+      const ta = document.createElement('textarea');
+      ta.value = txt;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2400);
+    });
+  }
+
+  function clearAll() {
+    if (!confirm('確定要清空所有資料嗎？')) return;
+    document.querySelectorAll('[contenteditable="true"]').forEach(el => el.textContent = '');
+    document.querySelectorAll('.total-value').forEach(el => el.textContent = '—');
+    document.querySelectorAll('.mood-btn.active').forEach(el => el.classList.remove('active'));
+    applyColors();
+  }
+</script>
+
+</body>
+</html>
