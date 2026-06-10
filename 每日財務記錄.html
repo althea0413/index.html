@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#fff5f9">
+<title>每日財務記錄</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;500;700&family=Cormorant+Garamond:wght@500;700&display=swap');
+  
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: linear-gradient(180deg, #fff5f9 0%, #fef0f5 100%);
+    color: #4a3540;
+    min-height: 100vh;
+    padding: 20px 0 60px;
+  }
+  
+  .container { max-width: 480px; margin: 0 auto; padding: 0 20px; }
+  
+  /* HEADER */
+  .header {
+    text-align: center;
+    padding: 24px 0 28px;
+  }
+  
+  .header-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 12px;
+    letter-spacing: 5px;
+    color: #c87ba0;
+    margin-bottom: 10px;
+    font-style: italic;
+  }
+  
+  .header-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 30px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #b85580 0%, #d896b4 50%, #c87ba0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  
+  .header-date {
+    font-size: 13px;
+    color: #a87a92;
+  }
+  
+  /* CARD */
+  .card {
+    background: #fff;
+    border: 1px solid #fbd5e3;
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 20px rgba(232, 138, 173, 0.08);
+  }
+  
+  .card-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #8a4a6b;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #fbe4ec;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .card-title-icon {
+    font-family: 'Cormorant Garamond', serif;
+    color: #d896b4;
+    font-style: italic;
+    font-size: 14px;
+    letter-spacing: 2px;
+  }
+  
+  /* INPUT */
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  
+  .label {
+    display: block;
+    font-size: 13px;
+    color: #8a6478;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  
+  .label-sub {
+    color: #b89aa6;
+    font-size: 11px;
+    margin-left: 4px;
+  }
+  
+  .input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid #fbd5e3;
+    border-radius: 10px;
+    font-size: 15px;
+    color: #4a3540;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    background: #fff;
+    transition: all 0.2s;
+  }
+  
+  .input:focus {
+    outline: none;
+    border-color: #d896b4;
+    box-shadow: 0 0 0 3px rgba(216, 150, 180, 0.15);
+  }
+  
+  .input::placeholder {
+    color: #d4b8c4;
+    font-style: italic;
+  }
+  
+  textarea.input {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-weight: 400;
+    min-height: 70px;
+    resize: vertical;
+  }
+  
+  /* MOOD BUTTONS */
+  .mood-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  
+  .mood-btn {
+    padding: 11px 6px;
+    border: 1.5px solid #fbd5e3;
+    background: #fff;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #8a6478;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+  
+  .mood-btn:active { transform: scale(0.96); }
+  
+  .mood-btn.active {
+    background: linear-gradient(135deg, #f8b8c8, #f59cb4);
+    border-color: #f59cb4;
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 2px 10px rgba(245, 156, 180, 0.3);
+  }
+  
+  /* SUMMARY BOX */
+  .summary-box {
+    background: linear-gradient(135deg, #fff0f5 0%, #ffe5ee 100%);
+    border: 2px solid #f5b5cc;
+    border-radius: 14px;
+    padding: 18px;
+    margin-top: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.9;
+    color: #5a3a4d;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 360px;
+    overflow-y: auto;
+  }
+  
+  /* BUTTONS */
+  .btn-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  
+  .btn {
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Noto Sans TC', sans-serif;
+    letter-spacing: 1px;
+  }
+  
+  .btn:active { transform: scale(0.97); }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #d896b4 0%, #c87ba0 100%);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(200, 123, 160, 0.35);
+  }
+  
+  .btn-secondary {
+    background: #fff;
+    color: #c87ba0;
+    border: 1.5px solid #f5b5cc;
+  }
+  
+  .btn-full {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #b890c4 0%, #a878b8 100%);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(168, 120, 184, 0.35);
+  }
+  
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: rgba(74, 53, 64, 0.95);
+    color: #fff;
+    padding: 14px 24px;
+    border-radius: 50px;
+    font-size: 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 999;
+  }
+  
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+  
+  /* HISTORY */
+  .history-item {
+    padding: 12px 14px;
+    background: #fff5f9;
+    border-left: 3px solid #d896b4;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .history-item:active { transform: scale(0.98); }
+  
+  .history-date {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
+    color: #c87ba0;
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+  
+  .history-meta {
+    font-size: 11px;
+    color: #a87a92;
+    margin-top: 3px;
+  }
+  
+  .history-empty {
+    text-align: center;
+    color: #b89aa6;
+    font-size: 13px;
+    padding: 20px;
+    font-style: italic;
+  }
+  
+  /* STATS */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  
+  .stat-box {
+    background: linear-gradient(135deg, #fff0f5 0%, #ffe5ee 100%);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    border: 1px solid #fbd5e3;
+  }
+  
+  .stat-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 10px;
+    color: #a87a92;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+    font-style: italic;
+  }
+  
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #b85580;
+  }
+  
+  .stat-num.green { color: #b890c4; }
+  .stat-num.red { color: #e8838e; }
+  
+  /* WARNING */
+  .warning-bar {
+    background: linear-gradient(135deg, #ffe5d4, #ffd4b8);
+    border: 1px solid #ffb088;
+    color: #8a4a2a;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    margin-bottom: 14px;
+    display: none;
+  }
+  
+  .warning-bar.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  
+  <div class="header">
+    <div class="header-label">— Daily Finance Diary —</div>
+    <div class="header-title">每日財務記錄</div>
+    <div class="header-date" id="today"></div>
+  </div>
+
+  <div class="warning-bar" id="warning"></div>
+
+  <!-- 帳戶餘額 -->
+  <div class="card">
+    <div class="card-title">
+      <span>💰 今日帳戶</span>
+      <span class="card-title-icon">/ ACCOUNTS</span>
+    </div>
+    
+    <div class="field">
+      <label class="label">期貨帳戶權益數 <span class="label-sub">(總金額)</span></label>
+      <input type="number" class="input" id="futures" placeholder="例如：49345">
+    </div>
+    
+    <div class="field">
+      <label class="label">銀行存款 <span class="label-sub">(可動用)</span></label>
+      <input type="number" class="input" id="bank" placeholder="例如：5000">
+    </div>
+    
+    <div class="field">
+      <label class="label">信用卡待繳 <span class="label-sub">(兩張卡合計)</span></label>
+      <input type="number" class="input" id="card" placeholder="例如：43116">
+    </div>
+    
+    <div class="field">
+      <label class="label">富邦信貸餘額</label>
+      <input type="number" class="input" id="loan" placeholder="例如：369186">
+    </div>
+  </div>
+
+  <!-- 期貨操作 -->
+  <div class="card">
+    <div class="card-title">
+      <span>📊 期貨操作</span>
+      <span class="card-title-icon">/ TRADING</span>
+    </div>
+    
+    <div class="field">
+      <label class="label">今日進場次數</label>
+      <input type="number" class="input" id="trades" placeholder="0 = 今天沒操作">
+    </div>
+    
+    <div class="field">
+      <label class="label">今日損益 <span class="label-sub">(虧損請輸負號 -)</span></label>
+      <input type="number" class="input" id="pnl" placeholder="例如：1500 或 -800">
+    </div>
+    
+    <div class="field">
+      <label class="label">最大單筆虧損</label>
+      <input type="number" class="input" id="maxloss" placeholder="今日最痛的一筆">
+    </div>
+  </div>
+
+  <!-- 今日支出 -->
+  <div class="card">
+    <div class="card-title">
+      <span>🛒 今日支出</span>
+      <span class="card-title-icon">/ SPENDING</span>
+    </div>
+    
+    <div class="field">
+      <label class="label">飲食</label>
+      <input type="number" class="input" id="food" placeholder="今天吃了多少">
+    </div>
+    
+    <div class="field">
+      <label class="label">交通 / 其他</label>
+      <input type="number" class="input" id="other" placeholder="非必要支出注意">
+    </div>
+    
+    <div class="field">
+      <label class="label">是否衝動消費？</label>
+      <textarea class="input" id="impulse" placeholder="今天有沒有想衝動買什麼？有沒有買成功？"></textarea>
+    </div>
+  </div>
+
+  <!-- 心情 -->
+  <div class="card">
+    <div class="card-title">
+      <span>💭 今日狀態</span>
+      <span class="card-title-icon">/ MOOD</span>
+    </div>
+    
+    <div class="field">
+      <label class="label">情緒</label>
+      <div class="mood-row">
+        <button class="mood-btn" data-mood="平穩">😌 平穩</button>
+        <button class="mood-btn" data-mood="興奮">🤩 興奮</button>
+        <button class="mood-btn" data-mood="焦慮">😰 焦慮</button>
+        <button class="mood-btn" data-mood="低落">😔 低落</button>
+      </div>
+    </div>
+    
+    <div class="field" style="margin-top:16px;">
+      <label class="label">紀律自評</label>
+      <div class="mood-row">
+        <button class="mood-btn" data-disc="完美">💯 完美</button>
+        <button class="mood-btn" data-disc="良好">✨ 良好</button>
+        <button class="mood-btn" data-disc="勉強">😅 勉強</button>
+        <button class="mood-btn" data-disc="破功">💔 破功</button>
+      </div>
+    </div>
+    
+    <div class="field" style="margin-top:16px;">
+      <label class="label">一句話反省 <span class="label-sub">(今天最想記下的事)</span></label>
+      <textarea class="input" id="reflect" placeholder="例如：今天忍住沒買衣服，覺得自己很棒"></textarea>
+    </div>
+  </div>
+
+  <!-- 按鈕 -->
+  <div class="btn-group">
+    <button class="btn btn-primary" onclick="saveData()">💾 儲存今日</button>
+    <button class="btn btn-secondary" onclick="generateSummary()">📋 產生摘要</button>
+    <button class="btn btn-full" onclick="copySummary()">✨ 複製摘要傳給 Claude</button>
+  </div>
+
+  <!-- 摘要顯示 -->
+  <div class="card" id="summary-card" style="display:none; margin-top:16px;">
+    <div class="card-title">
+      <span>📝 今日摘要</span>
+      <span class="card-title-icon">/ SUMMARY</span>
+    </div>
+    <div class="summary-box" id="summary"></div>
+  </div>
+
+  <!-- 統計 -->
+  <div class="card" style="margin-top:16px;">
+    <div class="card-title">
+      <span>📈 累計統計</span>
+      <span class="card-title-icon">/ STATS</span>
+    </div>
+    
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-label">記錄天數</div>
+        <div class="stat-num" id="totalDays">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">累計損益</div>
+        <div class="stat-num" id="totalPnl">$0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">紀律達成率</div>
+        <div class="stat-num" id="disciplineRate">0%</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">距離 10/3</div>
+        <div class="stat-num" id="daysLeft">--</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 歷史記錄 -->
+  <div class="card" style="margin-top:16px;">
+    <div class="card-title">
+      <span>📚 歷史記錄</span>
+      <span class="card-title-icon">/ HISTORY</span>
+    </div>
+    <div id="history"></div>
+  </div>
+
+  <!-- 匯出/匯入 -->
+  <div class="btn-group" style="margin-top:16px;">
+    <button class="btn btn-secondary" onclick="exportData()">📤 匯出資料</button>
+    <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📥 匯入資料</button>
+  </div>
+  <input type="file" id="importFile" style="display:none;" accept=".json" onchange="importData(event)">
+  
+</div>
+
+<div class="toast" id="toast">已儲存</div>
+
+<script>
+  // 今日日期
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+  document.getElementById('today').textContent = dateStr;
+  
+  // 距離 10/3
+  const target = new Date(today.getFullYear(), 9, 3);
+  if (target < today) target.setFullYear(today.getFullYear() + 1);
+  const daysLeft = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+  document.getElementById('daysLeft').textContent = daysLeft + '天';
+  
+  // 情緒按鈕
+  let selectedMood = '';
+  let selectedDisc = '';
+  
+  document.querySelectorAll('[data-mood]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-mood]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedMood = btn.dataset.mood;
+    });
+  });
+  
+  document.querySelectorAll('[data-disc]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-disc]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedDisc = btn.dataset.disc;
+    });
+  });
+  
+  // 載入今日已存資料
+  function loadToday() {
+    const key = 'finance_' + today.toISOString().slice(0, 10);
+    const data = localStorage.getItem(key);
+    if (data) {
+      const d = JSON.parse(data);
+      document.getElementById('futures').value = d.futures || '';
+      document.getElementById('bank').value = d.bank || '';
+      document.getElementById('card').value = d.card || '';
+      document.getElementById('loan').value = d.loan || '';
+      document.getElementById('trades').value = d.trades || '';
+      document.getElementById('pnl').value = d.pnl || '';
+      document.getElementById('maxloss').value = d.maxloss || '';
+      document.getElementById('food').value = d.food || '';
+      document.getElementById('other').value = d.other || '';
+      document.getElementById('impulse').value = d.impulse || '';
+      document.getElementById('reflect').value = d.reflect || '';
+      
+      if (d.mood) {
+        document.querySelector(`[data-mood="${d.mood}"]`)?.classList.add('active');
+        selectedMood = d.mood;
+      }
+      if (d.disc) {
+        document.querySelector(`[data-disc="${d.disc}"]`)?.classList.add('active');
+        selectedDisc = d.disc;
+      }
+    }
+  }
+  
+  // 儲存
+  function saveData() {
+    const data = {
+      date: today.toISOString().slice(0, 10),
+      futures: document.getElementById('futures').value,
+      bank: document.getElementById('bank').value,
+      card: document.getElementById('card').value,
+      loan: document.getElementById('loan').value,
+      trades: document.getElementById('trades').value,
+      pnl: document.getElementById('pnl').value,
+      maxloss: document.getElementById('maxloss').value,
+      food: document.getElementById('food').value,
+      other: document.getElementById('other').value,
+      impulse: document.getElementById('impulse').value,
+      reflect: document.getElementById('reflect').value,
+      mood: selectedMood,
+      disc: selectedDisc,
+      timestamp: new Date().toISOString()
+    };
+    
+    const key = 'finance_' + data.date;
+    localStorage.setItem(key, JSON.stringify(data));
+    
+    showToast('✨ 已儲存今日記錄');
+    updateStats();
+    loadHistory();
+    checkWarnings(data);
+  }
+  
+  // 警示檢查
+  function checkWarnings(d) {
+    const w = document.getElementById('warning');
+    const futures = parseInt(d.futures) || 0;
+    const pnl = parseInt(d.pnl) || 0;
+    
+    let warnings = [];
+    if (futures > 0 && futures < 30000) warnings.push('⚠️ 期貨帳戶低於 $30,000，逼近維持保證金');
+    if (pnl < -5000) warnings.push('🚨 單日虧損超過 $5,000，請暫停操作');
+    if (d.disc === '破功') warnings.push('💔 紀律破功，明天請更小心');
+    if (d.mood === '焦慮' || d.mood === '低落') warnings.push('💛 情緒不佳時不適合操作期貨');
+    
+    if (warnings.length > 0) {
+      w.innerHTML = warnings.join('<br>');
+      w.classList.add('show');
+    } else {
+      w.classList.remove('show');
+    }
+  }
+  
+  // 產生摘要
+  function generateSummary() {
+    const f = (id) => document.getElementById(id).value || '0';
+    const t = (id) => document.getElementById(id).value || '（無）';
+    
+    const futures = parseInt(f('futures')) || 0;
+    const bank = parseInt(f('bank')) || 0;
+    const card = parseInt(f('card')) || 0;
+    const loan = parseInt(f('loan')) || 0;
+    const totalAssets = futures + bank;
+    const totalDebt = card + loan;
+    const netWorth = totalAssets - totalDebt;
+    
+    const food = parseInt(f('food')) || 0;
+    const other = parseInt(f('other')) || 0;
+    const dailySpend = food + other;
+    
+    const pnl = parseInt(f('pnl')) || 0;
+    const pnlSign = pnl >= 0 ? '+' : '';
+    
+    const summary = 
+`📅 ${dateStr}
+距離 10/3 還有 ${daysLeft} 天
+
+━━━━━━━━━━━━━━━
+💰 資產狀況
+━━━━━━━━━━━━━━━
+• 期貨帳戶：NT$${futures.toLocaleString()}
+• 銀行存款：NT$${bank.toLocaleString()}
+• 信用卡待繳：NT$${card.toLocaleString()}
+• 富邦信貸：NT$${loan.toLocaleString()}
+• 總資產：NT$${totalAssets.toLocaleString()}
+• 總負債：NT$${totalDebt.toLocaleString()}
+• 淨值：NT$${netWorth.toLocaleString()}
+
+━━━━━━━━━━━━━━━
+📊 期貨操作
+━━━━━━━━━━━━━━━
+• 進場次數：${f('trades')} 次
+• 今日損益：${pnlSign}NT$${pnl.toLocaleString()}
+• 最大單筆虧損：NT$${f('maxloss')}
+
+━━━━━━━━━━━━━━━
+🛒 今日支出
+━━━━━━━━━━━━━━━
+• 飲食：NT$${food.toLocaleString()}
+• 其他：NT$${other.toLocaleString()}
+• 合計：NT$${dailySpend.toLocaleString()}
+• 衝動消費：${t('impulse')}
+
+━━━━━━━━━━━━━━━
+💭 心理狀態
+━━━━━━━━━━━━━━━
+• 情緒：${selectedMood || '（未選）'}
+• 紀律自評：${selectedDisc || '（未選）'}
+• 反省：${t('reflect')}
+
+━━━━━━━━━━━━━━━
+Claude，請看一下今天的狀況～`;
+    
+    document.getElementById('summary').textContent = summary;
+    document.getElementById('summary-card').style.display = 'block';
+    document.getElementById('summary-card').scrollIntoView({ behavior: 'smooth' });
+  }
+  
+  // 複製摘要
+  function copySummary() {
+    const summary = document.getElementById('summary').textContent;
+    if (!summary) {
+      generateSummary();
+    }
+    
+    const text = document.getElementById('summary').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('✨ 已複製！貼給 Claude 即可');
+    }).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('✨ 已複製！貼給 Claude 即可');
+    });
+  }
+  
+  // 統計
+  function updateStats() {
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('finance_')).sort();
+    document.getElementById('totalDays').textContent = keys.length;
+    
+    let totalPnl = 0;
+    let discPerfect = 0;
+    keys.forEach(k => {
+      const d = JSON.parse(localStorage.getItem(k));
+      totalPnl += parseInt(d.pnl) || 0;
+      if (d.disc === '完美' || d.disc === '良好') discPerfect++;
+    });
+    
+    const sign = totalPnl >= 0 ? '+' : '';
+    const pnlEl = document.getElementById('totalPnl');
+    pnlEl.textContent = sign + '$' + totalPnl.toLocaleString();
+    pnlEl.className = 'stat-num ' + (totalPnl >= 0 ? 'green' : 'red');
+    
+    const rate = keys.length > 0 ? Math.round(discPerfect / keys.length * 100) : 0;
+    document.getElementById('disciplineRate').textContent = rate + '%';
+  }
+  
+  // 歷史記錄
+  function loadHistory() {
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('finance_')).sort().reverse();
+    const histEl = document.getElementById('history');
+    
+    if (keys.length === 0) {
+      histEl.innerHTML = '<div class="history-empty">尚無記錄，從今天開始吧 ✨</div>';
+      return;
+    }
+    
+    histEl.innerHTML = keys.slice(0, 10).map(k => {
+      const d = JSON.parse(localStorage.getItem(k));
+      const date = new Date(d.date);
+      const dateLabel = `${date.getMonth()+1}/${date.getDate()}`;
+      const pnl = parseInt(d.pnl) || 0;
+      const pnlSign = pnl >= 0 ? '+' : '';
+      const pnlColor = pnl >= 0 ? '#b890c4' : '#e8838e';
+      
+      return `<div class="history-item" onclick="loadDate('${d.date}')">
+        <div class="history-date">${dateLabel} ・ ${d.mood || '—'} ・ ${d.disc || '—'}</div>
+        <div class="history-meta">
+          損益 <span style="color:${pnlColor}; font-weight:700;">${pnlSign}$${pnl.toLocaleString()}</span>
+          ・ 期貨 $${parseInt(d.futures || 0).toLocaleString()}
+        </div>
+      </div>`;
+    }).join('');
+  }
+  
+  // 載入指定日期
+  function loadDate(date) {
+    if (!confirm('要載入 ' + date + ' 的資料？目前未儲存的內容會消失')) return;
+    const data = localStorage.getItem('finance_' + date);
+    if (!data) return;
+    const d = JSON.parse(data);
+    
+    document.getElementById('futures').value = d.futures || '';
+    document.getElementById('bank').value = d.bank || '';
+    document.getElementById('card').value = d.card || '';
+    document.getElementById('loan').value = d.loan || '';
+    document.getElementById('trades').value = d.trades || '';
+    document.getElementById('pnl').value = d.pnl || '';
+    document.getElementById('maxloss').value = d.maxloss || '';
+    document.getElementById('food').value = d.food || '';
+    document.getElementById('other').value = d.other || '';
+    document.getElementById('impulse').value = d.impulse || '';
+    document.getElementById('reflect').value = d.reflect || '';
+    
+    document.querySelectorAll('[data-mood]').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('[data-disc]').forEach(b => b.classList.remove('active'));
+    if (d.mood) {
+      document.querySelector(`[data-mood="${d.mood}"]`)?.classList.add('active');
+      selectedMood = d.mood;
+    }
+    if (d.disc) {
+      document.querySelector(`[data-disc="${d.disc}"]`)?.classList.add('active');
+      selectedDisc = d.disc;
+    }
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showToast('已載入 ' + date);
+  }
+  
+  // Toast
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+  
+  // 匯出
+  function exportData() {
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('finance_')).sort();
+    const data = {};
+    keys.forEach(k => { data[k] = JSON.parse(localStorage.getItem(k)); });
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `finance_backup_${today.toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✨ 已匯出備份檔');
+  }
+  
+  // 匯入
+  function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        let count = 0;
+        Object.keys(data).forEach(k => {
+          if (k.startsWith('finance_')) {
+            localStorage.setItem(k, JSON.stringify(data[k]));
+            count++;
+          }
+        });
+        showToast(`✨ 已匯入 ${count} 筆記錄`);
+        updateStats();
+        loadHistory();
+        loadToday();
+      } catch (err) {
+        showToast('❌ 檔案格式錯誤');
+      }
+    };
+    reader.readAsText(file);
+  }
+  
+  // 初始化
+  loadToday();
+  updateStats();
+  loadHistory();
+</script>
+
+</body>
+</html>
